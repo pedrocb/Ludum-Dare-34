@@ -1,6 +1,7 @@
 require 'Player'
 require 'Tile'
 require 'Camera'
+require 'Collisions'
 
 function startGame()
   setupWorld()
@@ -28,6 +29,7 @@ end
 function setupWorld()
   love.physics.setMeter(64)
   world = love.physics.newWorld(0, 9.81*64, true)
+  world:setCallbacks(beginContact, endContact, preSolve, postSolve)
 end
 
 
@@ -35,6 +37,7 @@ function love.load()
   levels = {}
   table.insert(levels,love.graphics.newImage("Level1.png"):getData())
   table.insert(levels,love.graphics.newImage("Level2.png"):getData())
+  tileImage = love.graphics.newImage("Tile.png")
   startGame()
 end
 
@@ -48,6 +51,8 @@ function love.draw()
   love.graphics.setColor(255, 0, 0, 100)
   love.graphics.print(Player.moves[currentMove],100,100)
   love.graphics.rectangle("fill", 0, love.window.getHeight() - 24, love.window.getWidth(), 24)
+  love.graphics.setColor(255, 0, 0, 100)
+  love.graphics.rectangle("fill", player.body:getX(),player.body:getY(), 1, 1)
   Camera:unset()
 end
 
@@ -61,25 +66,29 @@ function love.keypressed(key, isrepeat)
 end
 
 function love.update(dt)
+  local initialx = player.body:getX()
   world:update(dt)
+  local diff = player.body:getX() - initialx
+  Camera:move(diff,0)
+  if love.keyboard.isDown("right") then
+    player.body:applyForce(200,0)
+  end
+  if love.keyboard.isDown("left") then
+    player.body:applyForce(-200,0)
+  end
+  if love.keyboard.isDown("up") and player.canJump then
+    player.body:applyForce(0,-4500)
+  end
+
   if love.keyboard.isDown(keys[2]) then
-    if Player.moves[currentMove]=="up" then
-      player.body:applyForce(0,-600)
-    elseif Player.moves[currentMove]=="down" then
+    if Player.moves[currentMove]=="down" then
       player.body:applyForce(0,200)
     elseif Player.moves[currentMove]=="left" then
       player.body:applyForce(-200,0)
     elseif Player.moves[currentMove]=="right" then
       player.body:applyForce(200,0)
+    elseif Player.moves[currentMove]=="up" and player.canJump then
+      player.body:applyForce(0,-4500)
     end
-  end
-  if love.keyboard.isDown("right") then
-    Camera:move(50,0)
-  end
-  if love.keyboard.isDown("left") then
-    Camera:move(-50,0)
-  end
-  if love.keyboard.isDown("up") then
-    Camera:rotate(90)
   end
 end
