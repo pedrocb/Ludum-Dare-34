@@ -1,4 +1,0 @@
-2 blocos acima dos pes do player-- 1 na lateral
-1 bloco acima dos pes do player -- 3 na lateral
-mesmo bloco -- 4 na lateral
-1 abaixo -- 5 com double speed up

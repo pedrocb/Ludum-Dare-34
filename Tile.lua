@@ -7,14 +7,14 @@ Tile = {
   colors = {{r=0,g=0,b=0},{r=255,g=0,b=0},{r=0,g=0,b=255},{r=0,g=255,b=0}}
 }
 
-function Tile:new (x,y,w,img)
+function Tile:new (x,y,w,color)
   local tile = {}
-  tile.image = img
+  tile.image = tilesImages[color]
   tile.width = w
   tile.body = love.physics.newBody(world,x*self.size + self.size*w/2 + self.x_offside,y*self.size + self.size/2, "static")
   tile.shape = love.physics.newRectangleShape(self.size*w, self.size)
   tile.fixture = love.physics.newFixture(tile.body, tile.shape)
-  tile.fixture:setUserData("Tile")
+  tile.fixture:setUserData(color)
 
   return tile
 end
@@ -22,6 +22,7 @@ end
 function Tile:drawTile (tile)
   b = tile
   for i=0,tile.width-1 do
+    love.graphics.setColor(255, 255, 255, 255)
     love.graphics.draw(b.image, b.body:getX() - (b.width-2)*tile_size/2 + tile_size*i, b.body:getY()+tile_size/2, b.body:getAngle(),  1, 1, Tile.size, Tile.size)
   end
 end

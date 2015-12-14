@@ -1,6 +1,6 @@
 function love.conf (t)
-  t.console = true
-  t.window.title = "Ludum Dare 34"
+  t.console = false
+  t.window.title = "Two Finger Platform"
   t.window.height = 600
   t.window.width = 800
 end

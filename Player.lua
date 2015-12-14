@@ -22,8 +22,6 @@ end
 
 function Player:drawPlayer(playerx)
   b = playerx
+  love.graphics.setColor(255, 255, 255, 255)
   love.graphics.draw(playerImage, b.body:getX(), b.body:getY(), b.body:getAngle(),  1, 1, playerImage:getWidth()/2, playerImage:getHeight()/2)
-  if playerx.attacking then
-    love.graphics.draw(player.weaponImage, b.body:getX() + playerImage:getWidth() - 10, b.body:getY() - playerImage:getHeight()/2 + 10, b.body:getAngle(),  1, 1, playerx.weaponImage:getWidth()/2, playerx.weaponImage:getHeight()/2)
-  end
 end

@@ -6,16 +6,24 @@ function startLevel(_level)
   currentLevel =_level
   movingblocks = {}
   fallingblocks = {}
+  tiles = {}
   tiles = getLevelTiles(currentLevel)
   wall = {}
   wall.body = love.physics.newBody(world,levels[currentLevel]:getWidth()*Tile.size,love.window:getHeight()/2, "static")
   wall.shape = love.physics.newRectangleShape(1, love.window:getHeight())
   wall.fixture = love.physics.newFixture(wall.body, wall.shape)
+  wall.fixture:setUserData("Win")
   wall2 = {}
   wall2.body = love.physics.newBody(world,0,0, "static")
   wall2.shape = love.physics.newRectangleShape(levels[currentLevel]:getWidth()*Tile.size, 1)
   wall2.fixture = love.physics.newFixture(wall2.body, wall2.shape)
+  wall2.fixture:setUserData("Wall")
   currentState = "GameState"
+  if currentLevel == 1 or currentLevel == 3 or currentLevel == 5 or currentLevel ==8 or currentLevel == 10 then
+    gameSound:stop()
+    gameSound:play()
+  end
+
 end
 
 function getLevelTiles(level)
@@ -36,10 +44,10 @@ function getLevelTiles(level)
         if(colorindex == 3) then
           table.insert(movingblocks,MovingBlock:new(initiali,j,width,tilesImages[colorindex]))
         elseif(colorindex == 4) then
-          print(initiali.." "..j)
           table.insert(fallingblocks,TriangleBlock:new(initiali,j,width,tilesImages[colorindex-1]))
         else
-          table.insert(tiles,Tile:new(initiali,j,width,tilesImages[colorindex]))
+          print(initiali.." "..j.." "..width)
+          table.insert(tiles,Tile:new(initiali,j,width,colorindex))
         end
       end
       i=i+1
@@ -56,7 +64,7 @@ function setupWorld()
 end
 
 function GameStateDraw()
-  love.graphics.setColor(255, 255, 255, 255)
+  love.graphics.setColor(96, 96, 96, 255)
   love.graphics.rectangle("fill", 0, 0, love.window:getWidth(), love.window:getHeight())
   Camera:set()
   for i,v in ipairs(tiles) do
@@ -71,8 +79,6 @@ function GameStateDraw()
   end
   Player:drawPlayer(player)
   love.graphics.setColor(255, 0, 0, 255)
-  love.graphics.print(Player.moves[currentMove],100,100)
-  love.graphics.rectangle("fill", 0, love.window.getHeight() - 24, love.window.getWidth(), 24)
   love.graphics.setColor(255, 0, 0, 255)
   Camera:unset()
   drawGUI()
@@ -89,61 +95,38 @@ function GameStateUpdate(dt)
   if(camera.x>levels[currentLevel]:getWidth()*Tile.size - love.window:getWidth()) then
     camera.x = levels[currentLevel]:getWidth()*Tile.size - love.window:getWidth()
   end
-  if love.keyboard.isDown("right") then
-    player.body:applyForce(200,0)
-  end
-  if love.keyboard.isDown("left") then
-    player.body:applyForce(-200,0)
-  end
-  if love.keyboard.isDown("up") and player.canJump then
-    player.body:applyForce(0,-Player.jump)
-    player.canJump = false
+  for i,v in ipairs(fallingblocks) do
+    TriangleBlock:update(v)
   end
 end
 
 function GameStateKeyPressed(key,isrepeat)
-  if(key == keys[1]) then
-    currentMove= currentMove+1;
-    if currentMove == #Player.moves + 1 then
-      currentMove = 1
-    end
-  end
-  if(key == keys[2]) then
-    if love.keyboard.isDown(keys[2]) then
-      if Player.moves[currentMove]=="left" and player.canJump then
-        player.body:setLinearVelocity(0,0)
-      elseif Player.moves[currentMove]=="right" then
-        local vx,vy = player.body:getLinearVelocity()
-        if vx< 250 then
-          player.body:applyForce(Player.vel,0)
-        end
-      elseif Player.moves[currentMove]=="up" and player.canJump then
-        player.body:applyForce(0,-Player.jump)
-        player.canJump = false
-      elseif Player.moves[currentMove]=="fight" and player.canJump then
-        player.attacking = not player.attacking;
-        print(player.attacking)
+  if(key ~= "lctrl") then
+    if(key == keys[1]) then
+      currentMove= currentMove+1;
+      if currentMove == #Player.moves + 1 then
+        currentMove = 1
       end
     end
-  end
-end
-
-function love.load()
-  levels = {}
-  table.insert(levels,love.graphics.newImage("Level1.png"))
-  table.insert(levels,love.graphics.newImage("Level2.png"))
-  icons = {love.graphics.newImage("Jump.png"),love.graphics.newImage("Move.png"),love.graphics.newImage("Stop.png")}
-  tilesImages = {love.graphics.newImage("Tile.png"),love.graphics.newImage("Tile2.png"),love.graphics.newImage("MovingBlock1.png")}
-  playerImage = love.graphics.newImage("player.png")
-  lightsaber = love.graphics.newImage("ARMA.png")
-  startGame()
-end
-
-function love.draw()
-  if currentState == "readingState" then
-    ReadingKeysDraw()
-  elseif currentState == "GameState" then
-    GameStateDraw()
+    if(key == keys[2]) then
+      if love.keyboard.isDown(keys[2]) then
+        if Player.moves[currentMove]=="left" and player.canJump then
+          player.body:setLinearVelocity(0,0)
+        elseif Player.moves[currentMove]=="right" then
+          local vx,vy = player.body:getLinearVelocity()
+          if vx< 250 then
+            player.body:applyForce(Player.vel,0)
+          end
+        elseif Player.moves[currentMove]=="up" and player.canJump then
+          local jumpSound = love.audio.newSource("Jump.wav", "static")
+          jumpSound:play()
+          player.body:applyForce(0,-Player.jump)
+          player.canJump = false
+        end
+      end
+    end
+  else
+    startLevel(currentLevel)
   end
 end
 
